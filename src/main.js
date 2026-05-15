@@ -1,0 +1,764 @@
+import {
+  examDates,
+  grandOral,
+  methodAdvice,
+  navigation,
+  oralTraining,
+  planning,
+  physiqueChimie,
+  maths,
+  sti2d,
+  tests,
+} from './data.js';
+
+import './styles.css';
+
+const STORAGE_KEY = 'bac-sti2d-revision-v1';
+const app = document.querySelector('#app');
+const nav = document.querySelector('#nav');
+
+function loadState() {
+  const fallback = {
+    sessions: {},
+    checklist: {},
+    tests: {},
+  };
+
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    return {
+      sessions: parsed.sessions ?? {},
+      checklist: parsed.checklist ?? {},
+      tests: parsed.tests ?? {},
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+let state = loadState();
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function setSessionDone(id, checked) {
+  state.sessions[id] = checked;
+  saveState();
+}
+
+function setChecklistDone(id, checked) {
+  state.checklist[id] = checked;
+  saveState();
+}
+
+function setTestResult(testId, result) {
+  state.tests[testId] = result;
+  saveState();
+}
+
+function resetState() {
+  state = { sessions: {}, checklist: {}, tests: {} };
+  saveState();
+  render();
+}
+
+function formatDate(dateStr) {
+  return new Intl.DateTimeFormat('fr-FR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }).format(new Date(`${dateStr}T12:00:00`));
+}
+
+function formatShortDate(dateStr) {
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+  }).format(new Date(`${dateStr}T12:00:00`));
+}
+
+function countAllSessions() {
+  return planning.reduce((total, week) => total + week.sessions.length, 0);
+}
+
+function countAllChecklistItems() {
+  const collections = [maths, physiqueChimie, sti2d];
+  return collections.reduce(
+    (total, subject) =>
+      total +
+      subject.reduce((sum, notion) => sum + notion.checklist.length, 0),
+    0,
+  );
+}
+
+function countCompletedSessions() {
+  return Object.values(state.sessions).filter(Boolean).length;
+}
+
+function countCompletedChecklistItems() {
+  return Object.values(state.checklist).filter(Boolean).length;
+}
+
+function countCompletedTests() {
+  return Object.values(state.tests).filter(Boolean).length;
+}
+
+function allSessionsFlat() {
+  return planning.flatMap((week) => week.sessions.map((session) => ({ ...session, week: week.label })));
+}
+
+function upcomingSessions(limit = 4) {
+  return allSessionsFlat()
+    .filter((session) => !state.sessions[session.id])
+    .slice(0, limit);
+}
+
+function subjectStats() {
+  const groups = [
+    { label: 'Mathématiques', data: maths },
+    { label: 'Physique-chimie', data: physiqueChimie },
+    { label: '2I2D / STI2D', data: sti2d },
+  ];
+
+  return groups.map((group) => {
+    const totalChecklist = group.data.reduce((sum, notion) => sum + notion.checklist.length, 0);
+    const completedChecklist = group.data.reduce(
+      (sum, notion) =>
+        sum + notion.checklist.filter((_, index) => state.checklist[`${notion.id}-${index}`]).length,
+      0,
+    );
+
+    const totalSessions = allSessionsFlat().filter((session) => session.subject === group.label).length;
+    const completedSessions = allSessionsFlat().filter(
+      (session) => session.subject === group.label && state.sessions[session.id],
+    ).length;
+
+    const total = totalChecklist + totalSessions;
+    const done = completedChecklist + completedSessions;
+
+    return {
+      label: group.label,
+      total,
+      done,
+      percent: total ? Math.round((done / total) * 100) : 0,
+    };
+  });
+}
+
+function overallProgress() {
+  const total = countAllSessions() + countAllChecklistItems() + tests.length;
+  const done = countCompletedSessions() + countCompletedChecklistItems() + countCompletedTests();
+  return total ? Math.round((done / total) * 100) : 0;
+}
+
+function renderNav() {
+  nav.innerHTML = navigation
+    .map(
+      (item) =>
+        `<a class="nav-link ${location.hash.replace('#', '') === item.hash || (!location.hash && item.hash === 'accueil') ? 'active' : ''}" href="#${item.hash}">${item.label}</a>`,
+    )
+    .join('');
+}
+
+function progressBar(value) {
+  return `
+    <div class="progress">
+      <div class="progress-fill" style="width:${value}%"></div>
+    </div>
+    <div class="progress-label">${value}%</div>
+  `;
+}
+
+function badge(text, tone = 'neutral') {
+  return `<span class="badge badge-${tone}">${text}</span>`;
+}
+
+function shellCard(title, body, extra = '') {
+  return `
+    <section class="card">
+      <div class="card-head">
+        <h2>${title}</h2>
+        ${extra}
+      </div>
+      <div class="card-body">${body}</div>
+    </section>
+  `;
+}
+
+function renderHome() {
+  const progress = overallProgress();
+  const subjects = subjectStats();
+  const todayTasks = upcomingSessions(4);
+
+  return `
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">${badge('Terminale STI2D SIN', 'accent')} ${badge('Bac le 15 juin 2026', 'warning')}</div>
+        <h2>Un site simple pour réviser sans te perdre.</h2>
+        <p>
+          Tout est organisé pour travailler les maths, la physique-chimie et la STI2D en priorité,
+          puis préparer le Grand Oral du 30 juin 2026 avec des fiches claires et un suivi local.
+        </p>
+      </div>
+      <div class="hero-panel">
+        <div class="date-card">
+          <span class="date-label">Bac</span>
+          <strong>${formatDate(examDates.bac)}</strong>
+        </div>
+        <div class="date-card">
+          <span class="date-label">Grand Oral</span>
+          <strong>${formatDate(examDates.grandOral)}</strong>
+        </div>
+        <div class="hero-message">
+          <p>Tu n’as pas besoin de tout savoir. Tu dois surtout sécuriser les points simples et gagner en régularité.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid two-up">
+      ${shellCard('Progression globale', `
+        ${progressBar(progress)}
+        <p class="muted">Suivi local basé sur les séances cochées, les checklists et les mini-tests.</p>
+      `)}
+      ${shellCard('Répartition par matière', `
+        <div class="stack">
+          ${subjects.map((subject) => `
+            <div class="subject-line">
+              <div>
+                <strong>${subject.label}</strong>
+                <div class="muted">${subject.done}/${subject.total} éléments</div>
+              </div>
+              <div class="subject-percent">${subject.percent}%</div>
+            </div>
+            ${progressBar(subject.percent)}
+          `).join('')}
+        </div>
+      `)}
+    </section>
+
+    <section class="grid two-up">
+      ${shellCard('Tâches à faire', `
+        <div class="stack">
+          ${todayTasks.length ? todayTasks.map((task) => `
+            <article class="task-card">
+              <div class="task-top">
+                <strong>${task.day} - ${formatShortDate(task.date)}</strong>
+                ${badge(task.subject, task.subject === 'Rattrapage' ? 'warning' : 'accent')}
+              </div>
+              <p>${task.objective}</p>
+              <div class="muted">${task.duration} - ${task.notion}</div>
+            </article>
+          `).join('') : '<p>Tout est coché. Reviens sur les fiches les plus fragiles ou fais un mini-test.</p>'}
+        </div>
+      `)}
+      ${shellCard('Message du jour', `
+        <p class="quote">Travaille petit mais tous les jours. Une séance simple, bien faite, vaut mieux qu’une grande séance mal tenue.</p>
+        <ul class="bullet-list">
+          <li>Commence par les matières difficiles.</li>
+          <li>Corrige immédiatement tes erreurs.</li>
+          <li>Garde une demi-journée légère chaque semaine.</li>
+        </ul>
+      `)}
+    </section>
+
+    ${shellCard('Ce qu’il reste à faire', `
+      <div class="stack">
+        ${planning.map((week) => `
+          <div class="mini-week">
+            <strong>${week.label}</strong>
+            <div class="muted">${week.focus}</div>
+          </div>
+        `).join('')}
+      </div>
+    `)}
+  `;
+}
+
+function renderPlanning() {
+  return `
+    <section class="page-head">
+      <h2>Planning de révision jusqu’au 15 juin</h2>
+      <p>Les séances sont courtes en semaine, plus longues le week-end, avec une séance légère et du rattrapage prévu.</p>
+    </section>
+    <div class="stack">
+      ${planning.map((week) => {
+        const done = week.sessions.filter((session) => state.sessions[session.id]).length;
+        const percent = Math.round((done / week.sessions.length) * 100);
+        return `
+          <details class="week-card" open>
+            <summary>
+              <div>
+                <strong>${week.label}</strong>
+                <div class="muted">${week.focus}</div>
+              </div>
+              <div class="week-meta">
+                <span>${done}/${week.sessions.length}</span>
+                <span>${percent}%</span>
+              </div>
+            </summary>
+            <div class="week-progress">${progressBar(percent)}</div>
+            <div class="session-grid">
+              ${week.sessions.map((session) => `
+                <article class="session-card ${state.sessions[session.id] ? 'done' : ''}">
+                  <div class="task-top">
+                    <div>
+                      <h3>${session.day}</h3>
+                      <div class="muted">${formatShortDate(session.date)} - ${session.duration}</div>
+                    </div>
+                    <label class="checkline">
+                      <input type="checkbox" data-session-id="${session.id}" ${state.sessions[session.id] ? 'checked' : ''} />
+                      <span>Fait</span>
+                    </label>
+                  </div>
+                  <div class="stack">
+                    <div>${badge(session.subject, session.subject === 'Rattrapage' ? 'warning' : 'accent')}</div>
+                    <p><strong>Objectif :</strong> ${session.objective}</p>
+                    <p><strong>Notion :</strong> ${session.notion}</p>
+                    <p><strong>Tâche :</strong> ${session.task}</p>
+                    <p><strong>Résultat attendu :</strong> ${session.expected}</p>
+                  </div>
+                </article>
+              `).join('')}
+            </div>
+          </details>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderNotionCollection(title, intro, items, subjectPrefix) {
+  return `
+    <section class="page-head">
+      <h2>${title}</h2>
+      <p>${intro}</p>
+    </section>
+    <div class="stack">
+      ${items.map((item) => `
+        <article class="card">
+          <div class="card-head">
+            <h3>${item.title}</h3>
+            ${badge(subjectPrefix, 'accent')}
+          </div>
+          <div class="card-body stack">
+            <p>${item.summary}</p>
+            <p><strong>Exemple corrigé :</strong> ${item.example}</p>
+            <p><strong>Exercice :</strong> ${item.exercise}</p>
+            ${item.formula ? `<p><strong>Formule essentielle :</strong> ${item.formula}</p>` : ''}
+            ${item.diagram ? `
+              <div>
+                <strong>Schéma simple</strong>
+                <pre class="diagram">${item.diagram.join('\n')}</pre>
+              </div>
+            ` : ''}
+            <div>
+              <strong>Erreurs fréquentes</strong>
+              <ul class="bullet-list">
+                ${(item.errors ?? []).map((error) => `<li>${error}</li>`).join('')}
+              </ul>
+            </div>
+            <div>
+              <strong>Checklist de maîtrise</strong>
+              <div class="checklist">
+                ${item.checklist.map((check, index) => {
+                  const id = `${item.id}-${index}`;
+                  return `
+                    <label class="checkline">
+                      <input type="checkbox" data-checklist-id="${id}" ${state.checklist[id] ? 'checked' : ''} />
+                      <span>${check}</span>
+                    </label>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          </div>
+        </article>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderMaths() {
+  return renderNotionCollection(
+    'Mathématiques',
+    'Les notions prioritaires sont sélectionnées pour sécuriser les points rentables au bac.',
+    maths,
+    'Maths',
+  );
+}
+
+function renderPhysics() {
+  return renderNotionCollection(
+    'Physique-chimie',
+    'Objectif: revoir les notions de base utiles dans les exercices techniques et les sujets de bac.',
+    physiqueChimie,
+    'PC',
+  );
+}
+
+function renderSti2d() {
+  return renderNotionCollection(
+    '2I2D / STI2D',
+    'Les fiches sont centrées sur la spécialité SIN, les systèmes embarqués et l’analyse de projets techniques.',
+    sti2d,
+    'STI2D',
+  );
+}
+
+function renderOralTopic(topic) {
+  return `
+    <article class="card oral-card">
+      <div class="card-head">
+        <h3>${topic.title}</h3>
+        ${badge('Grand Oral', 'warning')}
+      </div>
+      <div class="card-body stack">
+        <p><strong>Problématique :</strong> ${topic.problem}</p>
+        <p><strong>Introduction :</strong> ${topic.intro}</p>
+        <div>
+          <strong>Plan</strong>
+          <ol class="ordered-list">
+            ${topic.plan.map((part) => `<li>${part}</li>`).join('')}
+          </ol>
+        </div>
+        <div class="grid two-up">
+          <div>
+            <strong>Notions STI2D / SIN</strong>
+            <ul class="bullet-list">
+              ${topic.sti2d.map((item) => `<li>${item}</li>`).join('')}
+            </ul>
+          </div>
+          <div>
+            <strong>Notions scientifiques</strong>
+            <ul class="bullet-list">
+              ${topic.sciences.map((item) => `<li>${item}</li>`).join('')}
+            </ul>
+          </div>
+        </div>
+        <div>
+          <strong>Lien avec le réel</strong>
+          <ul class="bullet-list">
+            ${topic.impacts.map((item) => `<li>${item}</li>`).join('')}
+          </ul>
+        </div>
+        <p><strong>Conclusion :</strong> ${topic.conclusion}</p>
+        <p><strong>Ouverture :</strong> ${topic.opening}</p>
+        <div class="grid two-up">
+          <div>
+            <strong>Version 2 minutes</strong>
+            <p>${topic.twoMinutes}</p>
+          </div>
+          <div>
+            <strong>Version 5 minutes</strong>
+            <p>${topic.fiveMinutes}</p>
+          </div>
+        </div>
+        <div>
+          <strong>Fiche mémo</strong>
+          <ul class="bullet-list">
+            ${topic.memo.map((item) => `<li>${item}</li>`).join('')}
+          </ul>
+        </div>
+        <div>
+          <strong>Questions possibles du jury</strong>
+          <div class="stack">
+            ${topic.jury.map((q) => `
+              <div class="qna">
+                <p><strong>Question :</strong> ${q.q}</p>
+                <p class="muted"><strong>Réponse possible :</strong> ${q.a}</p>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function renderGrandOral() {
+  return `
+    <section class="page-head">
+      <h2>Préparation Grand Oral - 30 juin 2026</h2>
+      <p>Deux sujets sont structurés avec problématique, plan, version courte, version longue et entraînement jour par jour du 16 au 30 juin.</p>
+    </section>
+    <div class="stack">
+      ${grandOral.map(renderOralTopic).join('')}
+      ${shellCard('Programme d’entraînement oral', `
+        <div class="training-list">
+          ${oralTraining.map((step) => `
+            <div class="training-item">
+              <strong>${formatShortDate(step.date)}</strong>
+              <span>${step.goal}</span>
+            </div>
+          `).join('')}
+        </div>
+      `)}
+    </div>
+  `;
+}
+
+function testScoreAdvice(score) {
+  if (score >= 80) {
+    return {
+      tone: 'success',
+      text: 'Très bon score. Continue avec des révisions courtes et un entraînement oral régulier.',
+    };
+  }
+  if (score >= 60) {
+    return {
+      tone: 'warning',
+      text: 'Score correct mais fragile. Revois les erreurs et refais les questions ratées sans regarder la correction.',
+    };
+  }
+  return {
+    tone: 'danger',
+    text: 'Il faut revenir aux bases. Reprends la fiche, puis refais les questions une par une avec calme.',
+  };
+}
+
+function renderTestResult(test, result) {
+  if (!result) {
+    return `<p class="muted">Aucune tentative enregistrée pour le moment.</p>`;
+  }
+
+  const advice = testScoreAdvice(result.score);
+  return `
+    <div class="result-box result-${advice.tone}">
+      <strong>Score : ${result.score}%</strong>
+      <p>${advice.text}</p>
+    </div>
+    <div class="stack">
+      ${test.questions.map((question, index) => {
+        const userAnswer = result.answers[index];
+        const correct = question.answer;
+        const isRight = userAnswer === correct;
+        return `
+          <div class="correction-item ${isRight ? 'right' : 'wrong'}">
+            <p><strong>${question.prompt}</strong></p>
+            <p>Ta réponse : ${question.choices[userAnswer] ?? 'non répondue'}</p>
+            <p>Bonne réponse : ${question.choices[correct]}</p>
+            <p class="muted">${question.correction}</p>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderTests() {
+  return `
+    <section class="page-head">
+      <h2>Mini-tests hebdomadaires</h2>
+      <p>Chaque test est simple, interactif et corrigé immédiatement. Le résultat est stocké localement.</p>
+    </section>
+    <div class="stack">
+      ${tests.map((test) => {
+        const result = state.tests[test.id];
+        const advice = result ? testScoreAdvice(result.score) : null;
+        return `
+          <article class="card">
+            <div class="card-head">
+              <h3>${test.title}</h3>
+              ${badge(test.focus, 'accent')}
+            </div>
+            <div class="card-body stack">
+              <p>${test.focus}</p>
+              <form class="test-form" data-test-form data-test-id="${test.id}">
+                <div class="stack">
+                  ${test.questions.map((question, index) => `
+                    <fieldset class="question-box">
+                      <legend>${index + 1}. ${question.prompt}</legend>
+                      <div class="options">
+                        ${question.choices.map((choice, choiceIndex) => `
+                          <label class="option">
+                            <input type="radio" name="${test.id}-${index}" value="${choiceIndex}" ${result ? (result.answers[index] === choiceIndex ? 'checked' : '') : ''} />
+                            <span>${choice}</span>
+                          </label>
+                        `).join('')}
+                      </div>
+                    </fieldset>
+                  `).join('')}
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="button">Corriger le test</button>
+                </div>
+              </form>
+              ${result ? `
+                <div class="result-meta">
+                  <div class="result-box result-${advice.tone}">
+                    <strong>Dernier score: ${result.score}%</strong>
+                    <p>${advice.text}</p>
+                  </div>
+                  ${renderTestResult(test, result)}
+                </div>
+              ` : ''}
+            </div>
+          </article>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderSuivi() {
+  const progress = overallProgress();
+  const subjects = subjectStats();
+  const testsSummary = tests.map((test) => ({
+    title: test.title,
+    result: state.tests[test.id],
+  }));
+  const weakPoints = subjects
+    .filter((subject) => subject.percent < 70)
+    .map((subject) => subject.label);
+
+  return `
+    <section class="page-head">
+      <h2>Tableau de bord</h2>
+      <p>Le suivi reste local au navigateur. Tu peux cocher, tester, revenir en arrière et réinitialiser si nécessaire.</p>
+    </section>
+    <div class="grid two-up">
+      ${shellCard('Progression globale', `
+        ${progressBar(progress)}
+        <p class="muted">${countCompletedSessions()} séances terminées, ${countCompletedChecklistItems()} items de checklist cochés et ${countCompletedTests()} mini-tests tentés.</p>
+      `)}
+      ${shellCard('Répartition des progrès', `
+        <div class="stack">
+          ${subjects.map((subject) => `
+            <div class="subject-line">
+              <div>
+                <strong>${subject.label}</strong>
+                <div class="muted">${subject.done}/${subject.total}</div>
+              </div>
+              <div class="subject-percent">${subject.percent}%</div>
+            </div>
+            ${progressBar(subject.percent)}
+          `).join('')}
+        </div>
+      `)}
+    </div>
+
+    <div class="grid two-up">
+      ${shellCard('Mini-tests réalisés', `
+        <div class="stack">
+          ${testsSummary.map((test) => {
+            if (!test.result) {
+              return `<div class="mini-week"><strong>${test.title}</strong><div class="muted">Pas encore tenté</div></div>`;
+            }
+            return `<div class="mini-week"><strong>${test.title}</strong><div class="muted">Score: ${test.result.score}% - ${new Date(test.result.date).toLocaleDateString('fr-FR')}</div></div>`;
+          }).join('')}
+        </div>
+      `)}
+      ${shellCard('Points faibles à retravailler', `
+        ${weakPoints.length ? `
+          <ul class="bullet-list">
+            ${weakPoints.map((point) => `<li>${point}</li>`).join('')}
+          </ul>
+        ` : '<p>Rien d’inquiétant pour le moment. Continue à consolider régulièrement.</p>'}
+        <button type="button" class="button button-secondary" data-reset-state>Réinitialiser les données</button>
+      `)}
+    </div>
+  `;
+}
+
+function renderMethod() {
+  return `
+    <section class="page-head">
+      <h2>Méthode de révision</h2>
+      <p>Des conseils courts, concrets et adaptés à un élève qui a besoin de structure et de confiance.</p>
+    </section>
+    <div class="stack">
+      ${methodAdvice.map((advice) => `
+        <article class="card">
+          <div class="card-head">
+            <h3>${advice.title}</h3>
+          </div>
+          <div class="card-body">
+            <p>${advice.body}</p>
+          </div>
+        </article>
+      `).join('')}
+    </div>
+  `;
+}
+
+function currentRoute() {
+  const hash = location.hash.replace('#', '');
+  return hash || 'accueil';
+}
+
+function render() {
+  renderNav();
+  const route = currentRoute();
+  const views = {
+    accueil: renderHome,
+    planning: renderPlanning,
+    maths: renderMaths,
+    physique: renderPhysics,
+    sti2d: renderSti2d,
+    'grand-oral': renderGrandOral,
+    tests: renderTests,
+    suivi: renderSuivi,
+    methode: renderMethod,
+  };
+
+  app.innerHTML = (views[route] ?? renderHome)();
+}
+
+app.addEventListener('change', (event) => {
+  const target = event.target;
+
+  if (target instanceof HTMLInputElement && target.matches('[data-session-id]')) {
+    setSessionDone(target.dataset.sessionId, target.checked);
+    render();
+  }
+
+  if (target instanceof HTMLInputElement && target.matches('[data-checklist-id]')) {
+    setChecklistDone(target.dataset.checklistId, target.checked);
+    render();
+  }
+});
+
+app.addEventListener('submit', (event) => {
+  const form = event.target;
+  if (!(form instanceof HTMLFormElement) || !form.matches('[data-test-form]')) {
+    return;
+  }
+
+  event.preventDefault();
+  const testId = form.dataset.testId;
+  const test = tests.find((item) => item.id === testId);
+  if (!test) return;
+
+  const answers = test.questions.map((_, index) => {
+    const value = new FormData(form).get(`${test.id}-${index}`);
+    return value === null ? -1 : Number(value);
+  });
+
+  const score = Math.round(
+    (answers.filter((answer, index) => answer === test.questions[index].answer).length / test.questions.length) * 100,
+  );
+
+  setTestResult(testId, {
+    score,
+    answers,
+    date: new Date().toISOString(),
+  });
+
+  render();
+});
+
+app.addEventListener('click', (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+
+  if (target.matches('[data-reset-state]')) {
+    resetState();
+  }
+});
+
+window.addEventListener('hashchange', render);
+
+render();
