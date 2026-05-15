@@ -9,6 +9,10 @@ export const navigation = [
   { hash: 'maths', label: 'Maths' },
   { hash: 'physique', label: 'Physique-chimie' },
   { hash: 'sti2d', label: 'STI2D / SIN' },
+  { hash: 'sujets-bac', label: 'Sujets bac' },
+  { hash: 'priorites', label: 'Priorités' },
+  { hash: 'revision-express', label: 'Révision express' },
+  { hash: 'erreurs', label: 'Erreurs' },
   { hash: 'grand-oral', label: 'Grand Oral' },
   { hash: 'tests', label: 'Mini-tests' },
   { hash: 'suivi', label: 'Suivi' },
@@ -500,6 +504,16 @@ export const physiqueChimie = [
     checklist: ['Je sais lire un schéma simple', 'Je sais placer les appareils de mesure', 'Je comprends le rôle d’un dipôle', 'Je sais écrire une phrase de conclusion'],
   },
   {
+    id: 'pc-circuits',
+    title: 'Circuits série et dérivation',
+    summary: 'Savoir reconnaître un montage en série ou en dérivation aide à comprendre les mesures et les comportements du circuit.',
+    formula: 'En série, l’intensité est la même; en dérivation, la tension est la même.',
+    example: 'Deux lampes en dérivation peuvent continuer à fonctionner si l’une est débranchée.',
+    exercise: 'Identifier le type de montage sur un schéma et expliquer ce qui change pour le courant et la tension.',
+    errors: ['Confondre série et dérivation', 'Appliquer la même règle partout', 'Ne pas relier le schéma à une conséquence concrète'],
+    checklist: ['Je reconnais un circuit en série', 'Je reconnais un circuit en dérivation', 'Je sais dire ce qui se conserve', 'Je sais interpréter une panne simple'],
+  },
+  {
     id: 'pc-ohm',
     title: 'Loi d’Ohm',
     summary: 'La loi d’Ohm relie tension, intensité et résistance dans un dipôle ohmique.',
@@ -510,6 +524,16 @@ export const physiqueChimie = [
     checklist: ['Je sais utiliser U = R × I', 'Je convertis les unités avant de calculer', 'Je sais isoler la bonne grandeur', 'Je vérifie le sens du résultat'],
   },
   {
+    id: 'pc-puissance-electrique',
+    title: 'Puissance électrique',
+    summary: 'La puissance électrique est essentielle pour relier les appareils, la consommation et le dimensionnement d’une solution.',
+    formula: 'P = U × I',
+    example: 'Avec U = 12 V et I = 2 A, on obtient P = 24 W.',
+    exercise: 'Calculer la puissance électrique d’un composant puis l’énergie consommée sur une durée donnée.',
+    errors: ['Confondre puissance et énergie', 'Oublier de convertir les unités', 'Utiliser une formule au hasard'],
+    checklist: ['Je sais utiliser P = U × I', 'Je distingue puissance et énergie', 'Je sais relier la puissance à la consommation', 'Je sais vérifier un ordre de grandeur'],
+  },
+  {
     id: 'pc-chaines-energie',
     title: 'Chaînes d’énergie',
     summary: 'Une chaîne d’énergie décrit comment l’énergie est alimentée, distribuée, convertie et transmise.',
@@ -518,6 +542,16 @@ export const physiqueChimie = [
     exercise: 'Compléter une chaîne d’énergie à partir d’un système technique réel.',
     errors: ['Confondre chaîne d’énergie et chaîne d’information', 'Oublier un bloc', 'Ne pas relier le schéma au système'],
     checklist: ['Je sais nommer les blocs', 'Je sais décrire le trajet de l’énergie', 'Je sais relier le schéma au système', 'Je sais conclure sur le rendement'],
+  },
+  {
+    id: 'pc-solutions',
+    title: 'Solutions, concentration et dilution',
+    summary: 'Cette base de chimie suffit souvent pour les exercices simples: lire un dosage, une solution et une dilution.',
+    formula: 'c = m / V',
+    example: 'Si 5 g de soluté sont dissous dans 0,5 L, alors c = 10 g/L.',
+    exercise: 'Calculer une concentration simple ou retrouver la masse de soluté à partir d’un volume donné.',
+    errors: ['Confondre masse et volume', 'Oublier l’unité', 'Ne pas faire attention au litre ou au mL'],
+    checklist: ['Je sais lire une concentration', 'Je sais utiliser une formule simple', 'Je convertis les volumes correctement', 'Je sais interpréter une solution'],
   },
   {
     id: 'pc-ordres-grandeur',
@@ -538,6 +572,16 @@ export const physiqueChimie = [
     exercise: 'Décrire un graphique, citer une valeur lue et formuler une conclusion scientifique simple.',
     errors: ['Oublier l’échelle', 'Recopier sans interpréter', 'Ne pas écrire les unités'],
     checklist: ['Je lis un graphique', 'Je distingue mesure et interprétation', 'Je cite des valeurs précises', 'Je conclus avec une phrase claire'],
+  },
+  {
+    id: 'pc-mesures',
+    title: 'Mesures et qualité du résultat',
+    summary: 'Savoir commenter une mesure, sa précision et sa cohérence permet de gagner des points dans les réponses rédigées.',
+    formula: 'Résultat = valeur + unité, avec une vérification de cohérence.',
+    example: 'Si une valeur calculée est 0,002 W alors il faut vérifier si le résultat est crédible dans le contexte.',
+    exercise: 'Relire une mesure et dire si elle est plausible, bien écrite et exploitable.',
+    errors: ['Écrire une valeur sans unité', 'Ne pas commenter la cohérence', 'Ignorer l’arrondi ou la précision'],
+    checklist: ['Je donne une valeur avec unité', 'Je vérifie la cohérence', 'Je sais commenter un résultat', 'Je sais repérer une mesure aberrante'],
   },
 ];
 
@@ -918,5 +962,294 @@ export const methodAdvice = [
   {
     title: 'Ne pas se décourager',
     body: 'L’objectif n’est pas la perfection. L’objectif est de gagner des points sur les chapitres rentables et de sécuriser les bases. Chaque séance compte.',
+  },
+];
+
+export const bacPractice = [
+  {
+    id: 'bac-maths-1',
+    subject: 'Mathématiques',
+    title: 'Sujet type bac - Analyse de données techniques',
+    context: 'Un capteur de température d’un local informatique envoie plusieurs mesures sur une journée.',
+    questions: [
+      'Lire une valeur sur un graphique et préciser son unité.',
+      'Calculer une variation en pourcentage entre deux mesures.',
+      'Interpréter la tendance et conclure sur la stabilité du système.',
+    ],
+    correction: [
+      'Étape 1: lire les axes, l’échelle et l’unité avant toute réponse.',
+      'Étape 2: calculer la variation avec une écriture claire puis vérifier si le résultat est logique.',
+      'Étape 3: conclure sur la tendance en reliant directement le chiffre au système technique.',
+    ],
+    commonMistakes: [
+      'Donner une valeur sans unité.',
+      'Confondre valeur lue et interprétation.',
+      'Oublier de dire si la situation est stable ou non.',
+    ],
+  },
+  {
+    id: 'bac-pc-1',
+    subject: 'Physique-chimie',
+    title: 'Sujet type bac - Alimentation d’un système',
+    context: 'Une solution technique fonctionne sur batterie et alimente un moteur et une carte électronique.',
+    questions: [
+      'Calculer la puissance électrique consommée par un composant.',
+      'Utiliser U = R x I pour trouver la grandeur inconnue.',
+      'Estimer l’énergie consommée sur une durée d’utilisation.',
+    ],
+    correction: [
+      'Étape 1: relever les données utiles et convertir les unités avant le calcul.',
+      'Étape 2: choisir la formule adaptée, isoler la grandeur cherchée et écrire le calcul proprement.',
+      'Étape 3: vérifier la cohérence du résultat puis relier la puissance à l’autonomie du système.',
+    ],
+    commonMistakes: [
+      'Choisir la formule au hasard.',
+      'Oublier la conversion des unités.',
+      'Rendre un résultat sans interprétation dans le contexte.',
+    ],
+  },
+  {
+    id: 'bac-sti2d-1',
+    subject: 'STI2D / SIN',
+    title: 'Sujet type bac - Drone de recherche',
+    context: 'Un drone doit repérer une personne, transmettre l’information et rester autonome.',
+    questions: [
+      'Identifier la chaîne d’information et la chaîne d’énergie.',
+      'Justifier le choix d’un capteur et d’un actionneur.',
+      'Expliquer une contrainte de sécurité, d’autonomie ou de coût.',
+    ],
+    correction: [
+      'Étape 1: séparer clairement la chaîne d’information de la chaîne d’énergie.',
+      'Étape 2: associer chaque capteur et actionneur à son rôle précis dans la mission.',
+      'Étape 3: terminer en expliquant le compromis entre performance, autonomie et contraintes de terrain.',
+    ],
+    commonMistakes: [
+      'Mélanger information et énergie.',
+      'Parler de composants sans expliquer leur rôle.',
+      'Oublier la contrainte principale du système.',
+    ],
+  },
+];
+
+export const priorityCards = [
+  {
+    subject: 'Mathématiques',
+    title: 'Ultra-prioritaire',
+    items: [
+      'Calculs de base et automatismes',
+      'Pourcentages, proportionnalité et puissances',
+      'Lecture de graphiques',
+      'Fonctions et dérivation simple',
+      'Probabilités et statistiques de base',
+    ],
+    method: [
+      'Faire 15 minutes de calculs par jour.',
+      'Toujours écrire les unités et la conclusion.',
+      'Refaire les erreurs sans regarder la correction immédiatement.',
+    ],
+  },
+  {
+    subject: 'Physique-chimie',
+    title: 'Ultra-prioritaire',
+    items: [
+      'Grandeurs et unités',
+      'Conversions',
+      'Énergie, puissance et rendement',
+      'Électricité, loi d’Ohm et puissance électrique',
+      'Graphiques, mesures et ordres de grandeur',
+    ],
+    method: [
+      'Apprendre les formules utiles par cœur.',
+      'Toujours convertir avant de calculer.',
+      'Vérifier si le résultat est cohérent avec la situation.',
+    ],
+  },
+  {
+    subject: 'STI2D / SIN',
+    title: 'Ultra-prioritaire',
+    items: [
+      'Chaîne d’information',
+      'Chaîne d’énergie',
+      'Capteurs et actionneurs',
+      'Systèmes embarqués et réseaux',
+      'Analyse fonctionnelle et contraintes techniques',
+    ],
+    method: [
+      'S’entraîner à décrire un système en 4 blocs.',
+      'Toujours faire le lien entre besoin réel et solution technique.',
+      'Utiliser le vocabulaire exact sans faire des phrases trop longues.',
+    ],
+  },
+];
+
+export const priorityChecklist = [
+  {
+    day: 'Lundi matin',
+    subject: 'Mathématiques',
+    title: 'Remise en route',
+    tasks: [
+      '10 min de calculs de base',
+      '10 min sur les pourcentages ou les puissances',
+      '10 min de correction active',
+    ],
+  },
+  {
+    day: 'Mardi matin',
+    subject: 'Physique-chimie',
+    title: 'Unités et formules',
+    tasks: [
+      '10 min de conversions',
+      '10 min de formule énergie, puissance ou Ohm',
+      '10 min de vérification de résultat',
+    ],
+  },
+  {
+    day: 'Mercredi matin',
+    subject: 'STI2D / SIN',
+    title: 'Chaînes et système',
+    tasks: [
+      '10 min de vocabulaire technique',
+      '10 min de schéma chaîne d’information ou d’énergie',
+      '10 min de phrase de conclusion',
+    ],
+  },
+  {
+    day: 'Jeudi matin',
+    subject: 'Mathématiques',
+    title: 'Graphiques et variations',
+    tasks: [
+      '10 min de lecture de graphique',
+      '10 min de dérivation ou de suites',
+      '10 min de réponse rédigée',
+    ],
+  },
+  {
+    day: 'Vendredi matin',
+    subject: 'Physique-chimie',
+    title: 'Mesures et interprétation',
+    tasks: [
+      '10 min sur grandeurs et unités',
+      '10 min sur un exercice court',
+      '10 min pour corriger ce qui bloque',
+    ],
+  },
+  {
+    day: 'Samedi matin',
+    subject: 'Mix',
+    title: 'Consolidation',
+    tasks: [
+      '10 min de rappel maths',
+      '10 min de rappel physique-chimie',
+      '10 min de rappel STI2D',
+    ],
+  },
+  {
+    day: 'Dimanche matin',
+    subject: 'Léger',
+    title: 'Relecture calme',
+    tasks: [
+      '10 min de relecture des fiches',
+      '10 min de flashcards ou de récitation',
+      '10 min pour préparer la semaine suivante',
+    ],
+  },
+];
+
+export const quickRevision = [
+  {
+    id: 'qr-maths',
+    subject: 'Mathématiques',
+    title: '30 minutes chrono - Maths',
+    blocks: [
+      '5 min: relire une mini-fiche ou la formule du jour.',
+      '15 min: faire un exercice très court sans s’arrêter.',
+      '10 min: corriger et écrire l’erreur à éviter.',
+    ],
+  },
+  {
+    id: 'qr-pc',
+    subject: 'Physique-chimie',
+    title: '30 minutes chrono - Physique-chimie',
+    blocks: [
+      '5 min: noter les unités et la formule à utiliser.',
+      '15 min: faire un calcul complet avec conversion.',
+      '10 min: vérifier le résultat et la cohérence physique.',
+    ],
+  },
+  {
+    id: 'qr-sti2d',
+    subject: 'STI2D / SIN',
+    title: '30 minutes chrono - STI2D',
+    blocks: [
+      '5 min: revoir le vocabulaire de système.',
+      '15 min: décrire un objet technique en chaîne d’information/énergie.',
+      '10 min: écrire une conclusion claire et courte.',
+    ],
+  },
+];
+
+export const frequentErrors = [
+  {
+    subject: 'Mathématiques',
+    errors: [
+      {
+        title: 'Oublier les unités ou le contexte',
+        fix: 'Écrire l’unité à chaque ligne de calcul et relire la question avant la conclusion.',
+      },
+      {
+        title: 'Aller trop vite dans les calculs',
+        fix: 'Poser chaque étape et vérifier à la fin avec une estimation simple.',
+      },
+      {
+        title: 'Confondre variation et valeur',
+        fix: 'Dire clairement ce qui est lu, puis ce que ça veut dire.',
+      },
+      {
+        title: 'Mal interpréter un graphique',
+        fix: 'Regarder l’échelle, les axes et la légende avant de répondre.',
+      },
+    ],
+  },
+  {
+    subject: 'Physique-chimie',
+    errors: [
+      {
+        title: 'Utiliser une mauvaise formule',
+        fix: 'Identifier la grandeur cherchée avant de choisir la relation.',
+      },
+      {
+        title: 'Oublier les conversions',
+        fix: 'Convertir en unités de base avant le calcul principal.',
+      },
+      {
+        title: 'Mélanger puissance et énergie',
+        fix: 'Se rappeler que la puissance est liée à la rapidité, l’énergie à la quantité totale.',
+      },
+      {
+        title: 'Répondre sans conclusion',
+        fix: 'Terminer par une phrase qui reformule le résultat dans le contexte.',
+      },
+    ],
+  },
+  {
+    subject: 'STI2D / SIN',
+    errors: [
+      {
+        title: 'Confondre chaîne d’information et chaîne d’énergie',
+        fix: 'La chaîne d’information traite et décide; la chaîne d’énergie alimente et agit.',
+      },
+      {
+        title: 'Rester trop vague',
+        fix: 'Nommer les blocs, les rôles et le besoin réel du système.',
+      },
+      {
+        title: 'Oublier les contraintes',
+        fix: 'Citer au moins une contrainte de coût, d’autonomie, de sécurité ou de maintenance.',
+      },
+      {
+        title: 'Parler de la solution sans parler du problème',
+        fix: 'Commencer par le besoin puis montrer comment la technique y répond.',
+      },
+    ],
   },
 ];

@@ -1,8 +1,13 @@
 import {
+  bacPractice,
   examDates,
   grandOral,
+  frequentErrors,
   methodAdvice,
   navigation,
+  priorityCards,
+  priorityChecklist,
+  quickRevision,
   oralTraining,
   planning,
   physiqueChimie,
@@ -86,11 +91,12 @@ function countAllSessions() {
 
 function countAllChecklistItems() {
   const collections = [maths, physiqueChimie, sti2d];
+  const dailyPriorityItems = priorityChecklist.reduce((sum, day) => sum + day.tasks.length, 0);
   return collections.reduce(
     (total, subject) =>
       total +
       subject.reduce((sum, notion) => sum + notion.checklist.length, 0),
-    0,
+    dailyPriorityItems,
   );
 }
 
@@ -186,6 +192,106 @@ function shellCard(title, body, extra = '') {
       <div class="card-body">${body}</div>
     </section>
   `;
+}
+
+function preparePrint(targetId = null) {
+  if (!targetId) {
+    window.print();
+    return;
+  }
+
+  const source = document.querySelector(`[data-print-id="${targetId}"]`);
+  if (!source) {
+    window.print();
+    return;
+  }
+
+  const popup = window.open('', '_blank', 'width=900,height=1200');
+  if (!popup) {
+    window.print();
+    return;
+  }
+
+  const title = source.querySelector('h3')?.textContent ?? 'Fiche de révision';
+  const content = source.outerHTML;
+  popup.document.open();
+  popup.document.write(`<!doctype html>
+    <html lang="fr">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>${title}</title>
+        <style>
+          :root { color-scheme: light; }
+          body {
+            margin: 0;
+            padding: 24px;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: #1f2b2c;
+            background: #fff;
+          }
+          h1 {
+            margin: 0 0 18px;
+            font-size: 26px;
+          }
+          .print-note {
+            margin: 0 0 18px;
+            color: #5c6667;
+          }
+          .card {
+            border: 1px solid #d9d9d9;
+            border-radius: 18px;
+            padding: 20px;
+          }
+          .card-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 14px;
+          }
+          .card-head-actions,
+          .button,
+          .site-header,
+          .site-footer,
+          input,
+          .page-head-actions {
+            display: none !important;
+          }
+          .checkline {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+          }
+          .stack {
+            display: grid;
+            gap: 12px;
+          }
+          .bullet-list {
+            margin: 0;
+            padding-left: 20px;
+          }
+          .diagram {
+            padding: 12px;
+            border-radius: 12px;
+            background: #f3f6f6;
+            white-space: pre-wrap;
+          }
+          p { line-height: 1.5; }
+          @media print {
+            body { padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <h1>${title}</h1>
+        <p class="print-note">Fiche de révision imprimable - BAC STI2D SIN</p>
+        ${content}
+      </body>
+    </html>`);
+  popup.document.close();
+  popup.focus();
+  popup.print();
 }
 
 function renderHome() {
@@ -333,15 +439,27 @@ function renderPlanning() {
 function renderNotionCollection(title, intro, items, subjectPrefix) {
   return `
     <section class="page-head">
-      <h2>${title}</h2>
-      <p>${intro}</p>
+      <div class="page-head-actions">
+        <div>
+          <h2>${title}</h2>
+          <p>${intro}</p>
+        </div>
+        <button type="button" class="button button-secondary" data-print-all="${subjectPrefix}">
+          Imprimer toutes les fiches
+        </button>
+      </div>
     </section>
     <div class="stack">
       ${items.map((item) => `
-        <article class="card">
+        <article class="card printable-card" data-print-id="${item.id}">
           <div class="card-head">
             <h3>${item.title}</h3>
-            ${badge(subjectPrefix, 'accent')}
+            <div class="card-head-actions">
+              ${badge(subjectPrefix, 'accent')}
+              <button type="button" class="button button-secondary button-small" data-print-fiche="${item.id}">
+                Imprimer
+              </button>
+            </div>
           </div>
           <div class="card-body stack">
             <p>${item.summary}</p>
@@ -406,6 +524,177 @@ function renderSti2d() {
     sti2d,
     'STI2D',
   );
+}
+
+function renderBacPractice() {
+  return `
+    <section class="page-head">
+      <h2>Sujets type bac corrigés</h2>
+      <p>Entraîne-toi sur des situations courtes qui ressemblent aux questions rapportant des points en scientifiques.</p>
+    </section>
+    <div class="stack">
+      ${bacPractice.map((item) => `
+        <article class="card">
+          <div class="card-head">
+            <h3>${item.title}</h3>
+            ${badge(item.subject, 'accent')}
+          </div>
+          <div class="card-body stack">
+            <p><strong>Contexte :</strong> ${item.context}</p>
+            <div>
+              <strong>Questions type bac</strong>
+              <ol class="ordered-list">
+                ${item.questions.map((question) => `<li>${question}</li>`).join('')}
+              </ol>
+            </div>
+            <div>
+              <strong>Correction guidée</strong>
+              <ol class="ordered-list">
+                ${item.correction.map((step) => `<li>${step}</li>`).join('')}
+              </ol>
+            </div>
+            <div>
+              <strong>Erreurs fréquentes sur ce type de sujet</strong>
+              <ul class="bullet-list">
+                ${item.commonMistakes.map((mistake) => `<li>${mistake}</li>`).join('')}
+              </ul>
+            </div>
+          </div>
+        </article>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderPriorities() {
+  const dailyTotal = priorityChecklist.reduce((sum, day) => sum + day.tasks.length, 0);
+  const dailyDone = priorityChecklist.reduce(
+    (sum, day, index) =>
+      sum + day.tasks.filter((_, taskIndex) => state.checklist[`priority-${index}-${taskIndex}`]).length,
+    0,
+  );
+  const dailyPercent = dailyTotal ? Math.round((dailyDone / dailyTotal) * 100) : 0;
+
+  return `
+    <section class="page-head">
+      <h2>Fiches ultra-prioritaires</h2>
+      <p>Si tu manques de temps, commence ici. Ce sont les thèmes les plus rentables pour remonter la note en scientifique.</p>
+    </section>
+    <div class="stack">
+      <article class="card">
+        <div class="card-head">
+          <h3>Checklist quotidienne du matin</h3>
+          ${badge('30 min par matin', 'warning')}
+        </div>
+        <div class="card-body">
+          <div class="stack">
+            ${progressBar(dailyPercent)}
+            <p class="muted">${dailyDone}/${dailyTotal} tâches du matin cochées.</p>
+          </div>
+          <div class="daily-checklist">
+            ${priorityChecklist.map((day, dayIndex) => `
+              <details class="daily-card" open>
+                <summary>
+                  <div>
+                    <strong>${day.day}</strong>
+                    <div class="muted">${day.subject} - ${day.title}</div>
+                  </div>
+                </summary>
+                <div class="stack">
+                  ${day.tasks.map((task, taskIndex) => {
+                    const id = `priority-${dayIndex}-${taskIndex}`;
+                    return `
+                      <label class="checkline">
+                        <input type="checkbox" data-checklist-id="${id}" ${state.checklist[id] ? 'checked' : ''} />
+                        <span>${task}</span>
+                      </label>
+                    `;
+                  }).join('')}
+                </div>
+              </details>
+            `).join('')}
+          </div>
+        </div>
+      </article>
+
+      <div class="grid two-up">
+        ${priorityCards.map((card) => `
+          <article class="card">
+            <div class="card-head">
+              <h3>${card.subject}</h3>
+              ${badge(card.title, 'warning')}
+            </div>
+            <div class="card-body stack">
+              <div>
+                <strong>À savoir absolument</strong>
+                <ul class="bullet-list">
+                  ${card.items.map((item) => `<li>${item}</li>`).join('')}
+                </ul>
+              </div>
+              <div>
+                <strong>Comment réviser</strong>
+                <ul class="bullet-list">
+                  ${card.method.map((step) => `<li>${step}</li>`).join('')}
+                </ul>
+              </div>
+            </div>
+          </article>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderExpressRevision() {
+  return `
+    <section class="page-head">
+      <h2>Révision express 30 minutes</h2>
+      <p>Quand tu n’as pas beaucoup de temps, utilise cette version courte: un rappel, un exercice, puis une correction active.</p>
+    </section>
+    <div class="stack">
+      ${quickRevision.map((plan) => `
+        <article class="card">
+          <div class="card-head">
+            <h3>${plan.title}</h3>
+            ${badge(plan.subject, 'accent')}
+          </div>
+          <div class="card-body stack">
+            <ol class="ordered-list">
+              ${plan.blocks.map((block) => `<li>${block}</li>`).join('')}
+            </ol>
+            <p class="muted">Objectif: rester concentré, finir le bloc et noter une seule erreur à ne pas refaire.</p>
+          </div>
+        </article>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderErrors() {
+  return `
+    <section class="page-head">
+      <h2>Erreurs fréquentes par matière</h2>
+      <p>Cette page sert à éviter les points bêtement perdus. Lis-la avant un entraînement ou après une copie ratée.</p>
+    </section>
+    <div class="stack">
+      ${frequentErrors.map((subject) => `
+        <article class="card">
+          <div class="card-head">
+            <h3>${subject.subject}</h3>
+            ${badge('À corriger', 'danger')}
+          </div>
+          <div class="card-body stack">
+            ${subject.errors.map((error) => `
+              <div class="correction-item">
+                <p><strong>${error.title}</strong></p>
+                <p class="muted">${error.fix}</p>
+              </div>
+            `).join('')}
+          </div>
+        </article>
+      `).join('')}
+    </div>
+  `;
 }
 
 function renderOralTopic(topic) {
@@ -698,6 +987,10 @@ function render() {
     maths: renderMaths,
     physique: renderPhysics,
     sti2d: renderSti2d,
+    'sujets-bac': renderBacPractice,
+    priorites: renderPriorities,
+    'revision-express': renderExpressRevision,
+    erreurs: renderErrors,
     'grand-oral': renderGrandOral,
     tests: renderTests,
     suivi: renderSuivi,
@@ -753,6 +1046,16 @@ app.addEventListener('submit', (event) => {
 app.addEventListener('click', (event) => {
   const target = event.target;
   if (!(target instanceof HTMLElement)) return;
+
+  if (target.matches('[data-print-fiche]')) {
+    preparePrint(target.dataset.printFiche);
+    return;
+  }
+
+  if (target.matches('[data-print-all]')) {
+    preparePrint();
+    return;
+  }
 
   if (target.matches('[data-reset-state]')) {
     resetState();

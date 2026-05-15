@@ -442,6 +442,50 @@ textarea {
   padding: 6px 4px;
 }
 
+.daily-checklist {
+  display: grid;
+  gap: 12px;
+}
+
+.daily-card {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.daily-card summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.daily-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.page-head-actions,
+.card-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.card-head-actions {
+  align-items: center;
+}
+
+.button-small {
+  padding: 9px 14px;
+  font-size: 0.88rem;
+}
+
 .site-footer {
   margin-top: 22px;
   padding: 14px 0 4px;
@@ -480,5 +524,61 @@ textarea {
 
   .hero h2 {
     font-size: 2rem;
+  }
+}
+
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .site-header,
+  .site-footer,
+  .button,
+  .nav-link,
+  input,
+  label,
+  summary,
+  [data-reset-state],
+  [data-print-all],
+  [data-print-fiche] {
+    display: none !important;
+  }
+
+  .app-shell {
+    width: 100%;
+    padding: 0;
+  }
+
+  .site-main {
+    gap: 0;
+  }
+
+  .card,
+  .hero,
+  .week-card,
+  .session-card,
+  .task-card,
+  .mini-week,
+  .training-item,
+  .question-box,
+  .result-box,
+  .correction-item {
+    box-shadow: none;
+  }
+
+  .hero,
+  .card,
+  .week-card {
+    border-color: #dcdcdc;
+  }
+
+  .page-head {
+    padding: 0 0 12px;
+  }
+
+  .printable-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 }
