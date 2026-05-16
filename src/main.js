@@ -8,7 +8,6 @@ import {
   methodAdvice,
   officialReferences,
   navigation,
-  ficheSummaries,
   priorityCards,
   priorityChecklist,
   quickRevision,
@@ -46,7 +45,8 @@ function loadState() {
     courseFilter: 'all',
     courseSubject: courseCatalog[0]?.id ?? 'mathematiques',
     courseChapter: courseCatalog[0]?.chapters[0]?.id ?? 'maths-index',
-    ficheSubject: ficheSummaries[0]?.subject ?? 'mathematiques',
+    ficheSubject: courseCatalog[0]?.id ?? 'mathematiques',
+    ficheChapter: courseCatalog[0]?.chapters[0]?.id ?? 'maths-index',
   };
 
   try {
@@ -60,7 +60,8 @@ function loadState() {
       courseFilter: parsed.courseFilter ?? 'all',
       courseSubject: parsed.courseSubject ?? courseCatalog[0]?.id ?? 'mathematiques',
       courseChapter: parsed.courseChapter ?? courseCatalog[0]?.chapters[0]?.id ?? 'maths-index',
-      ficheSubject: parsed.ficheSubject ?? ficheSummaries[0]?.subject ?? 'mathematiques',
+      ficheSubject: parsed.ficheSubject ?? courseCatalog[0]?.id ?? 'mathematiques',
+      ficheChapter: parsed.ficheChapter ?? courseCatalog[0]?.chapters[0]?.id ?? 'maths-index',
     };
   } catch {
     return fallback;
@@ -94,6 +95,15 @@ function setCourseChapter(chapterId) {
 
 function setFicheSubject(subjectId) {
   state.ficheSubject = subjectId;
+  const subject = getCourseSubject(subjectId);
+  if (!subject.chapters.some((chapter) => chapter.id === state.ficheChapter)) {
+    state.ficheChapter = subject.chapters[0]?.id ?? state.ficheChapter;
+  }
+  saveState();
+}
+
+function setFicheChapter(chapterId) {
+  state.ficheChapter = chapterId;
   saveState();
 }
 
@@ -120,7 +130,8 @@ function resetState() {
     courseFilter: 'all',
     courseSubject: courseCatalog[0]?.id ?? 'mathematiques',
     courseChapter: courseCatalog[0]?.chapters[0]?.id ?? 'maths-index',
-    ficheSubject: ficheSummaries[0]?.subject ?? 'mathematiques',
+    ficheSubject: courseCatalog[0]?.id ?? 'mathematiques',
+    ficheChapter: courseCatalog[0]?.chapters[0]?.id ?? 'maths-index',
   };
   saveState();
   render();
@@ -418,6 +429,83 @@ async function fetchMarkdown(path) {
   return content;
 }
 
+function getMarkdownContent(path) {
+  return markdownByPath.get(path) ?? '';
+}
+
+function normalizeSectionTitle(title) {
+  return title
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function splitMarkdownSections(markdown) {
+  const lines = markdown.replace(/\r\n/g, '\n').split('\n');
+  const introLines = [];
+  const sections = [];
+  let current = null;
+
+  for (const line of lines) {
+    if (line.match(/^#\s+/)) {
+      continue;
+    }
+
+    const heading = line.match(/^(#{2,3})\s+(.*)$/);
+    if (heading) {
+      if (current) sections.push(current);
+      current = {
+        title: heading[2].trim(),
+        content: [],
+      };
+      continue;
+    }
+
+    if (current) {
+      current.content.push(line);
+    } else {
+      introLines.push(line);
+    }
+  }
+
+  if (current) {
+    sections.push(current);
+  }
+
+  return {
+    intro: introLines.join('\n').trim(),
+    sections,
+    map: new Map(
+      sections.map((section) => [
+        normalizeSectionTitle(section.title),
+        section.content.join('\n').trim(),
+      ]),
+    ),
+  };
+}
+
+function getSectionContent(sectionMap, titles) {
+  for (const title of titles) {
+    const content = sectionMap.get(normalizeSectionTitle(title));
+    if (content) return content;
+  }
+  return '';
+}
+
+function renderSectionBlock(title, content) {
+  if (!content) return '';
+  return `
+    <section class="mini-week fiche-block">
+      <strong>${title}</strong>
+      <div class="course-markdown">
+        ${markdownToHtml(content)}
+      </div>
+    </section>
+  `;
+}
+
 function getCourseSubject(subjectId) {
   return courseCatalog.find((item) => item.id === subjectId) ?? courseCatalog[0];
 }
@@ -427,124 +515,106 @@ function getCourseChapter(subjectId, chapterId) {
   return subject?.chapters.find((chapter) => chapter.id === chapterId) ?? subject?.chapters[0];
 }
 
-function getFiche(subjectId) {
-  return ficheSummaries.find((item) => item.subject === subjectId) ?? ficheSummaries[0];
-}
-
 function renderFiches() {
-  const activeFicheId = state.ficheSubject ?? ficheSummaries[0]?.subject ?? 'mathematiques';
-  const activeFiche = getFiche(activeFicheId);
-  const ficheButtons = ficheSummaries.map((subject) => {
-    const active = subject.subject === activeFiche.subject ? 'active' : '';
-    return `
-      <button type="button" class="fiche-select ${active}" data-fiche-subject="${subject.subject}">
-        <div class="fiche-select-top">
-          <strong>${subject.label}</strong>
-          <span class="badge badge-neutral">${subject.essentials.length} points</span>
-        </div>
-        <p>${subject.summary}</p>
-        <div class="eyebrow">
-          ${subject.keywords.map((keyword) => badge(keyword, 'neutral')).join('')}
-        </div>
-      </button>
-    `;
-  }).join('');
+  const activeSubjectId = state.ficheSubject ?? courseCatalog[0]?.id ?? 'mathematiques';
+  const activeSubject = getCourseSubject(activeSubjectId);
+  const activeChapter = getCourseChapter(activeSubject.id, state.ficheChapter ?? activeSubject.chapters[0]?.id ?? '');
+  const ficheButtons = courseCatalog
+    .map((subject) => {
+      const active = subject.id === activeSubject.id ? 'active' : '';
+      return `
+        <button type="button" class="fiche-select ${active}" data-fiche-subject="${subject.id}">
+          <div class="fiche-select-top">
+            <strong>${subject.label}</strong>
+            <span class="badge badge-neutral">${subject.chapters.length} fiches</span>
+          </div>
+          <p>${subject.intro}</p>
+          <div class="eyebrow">
+            ${subject.chapters.slice(0, 4).map((chapter) => badge(chapter.title, 'neutral')).join('')}
+          </div>
+        </button>
+      `;
+    })
+    .join('');
 
-  const activeCourse = courseCatalog.find((item) => item.id === activeFiche.courseSubject);
-  const activeChapter = activeCourse?.chapters.find((chapter) => chapter.id === activeFiche.courseChapter) ?? activeCourse?.chapters[0];
+  const chapterButtons = activeSubject.chapters
+    .map((chapter) => {
+      const active = chapter.id === activeChapter?.id ? 'active' : '';
+      return `
+        <button type="button" class="course-chapter-btn ${active}" data-fiche-chapter="${chapter.id}">
+          ${chapter.title}
+        </button>
+      `;
+    })
+    .join('');
+
+  const markdown = activeChapter ? getMarkdownContent(activeChapter.path) : '';
+  const sections = splitMarkdownSections(markdown);
+  const intro = sections.intro ? markdownToHtml(sections.intro) : '';
+  const ficheBlocks = [
+    {
+      title: 'Ce qu’il faut savoir',
+      titles: ["Ce qu'il faut savoir", "Ce qu'il faut retenir pour le bac", "Ce qu'il faut savoir écrire au bac", "Ce qu'il faut savoir écrire"],
+    },
+    { title: 'Définitions', titles: ['Définitions importantes'] },
+    { title: 'Formules', titles: ['Formules importantes'] },
+    { title: 'Méthodes', titles: ['Méthodes types'] },
+    { title: 'Exemple corrigé', titles: ['Exemple simple corrigé', 'Exemple guidé', "Exemple guidé d'autonomie"] },
+    { title: 'Erreurs fréquentes', titles: ['Erreurs fréquentes'] },
+    { title: 'Sources utiles', titles: ['Liens ou sources utiles'] },
+  ];
+  const ficheBlocksHtml = ficheBlocks
+    .map((block) => renderSectionBlock(block.title, getSectionContent(sections.map, block.titles)))
+    .join('');
 
   return `
     <section class="page-head">
       <h2>Fiches</h2>
-      <p>Les fiches sont des super-résumés. Elles gardent uniquement ce qu’il faut savoir par cœur. Pour les explications complètes, passe par la section Cours.</p>
-      <div class="filter-bar" role="tablist" aria-label="Choisir une fiche">
-        ${ficheSummaries.map((subject) => {
-          const active = subject.subject === activeFiche.subject ? 'active' : '';
-          return `<button type="button" class="filter-chip ${active}" data-fiche-subject="${subject.subject}">${subject.label} <span>${subject.essentials.length}</span></button>`;
+      <p>Chaque fiche correspond à un chapitre de cours. C’est un document court qui résume l’essentiel pour apprendre ou revoir plus facilement avant un contrôle, un examen ou le bac.</p>
+      <div class="filter-bar" role="tablist" aria-label="Choisir une matière pour les fiches">
+        ${courseCatalog.map((subject) => {
+          const active = subject.id === activeSubject.id ? 'active' : '';
+          return `<button type="button" class="filter-chip ${active}" data-fiche-subject="${subject.id}">${subject.label} <span>${subject.chapters.length}</span></button>`;
         }).join('')}
       </div>
     </section>
 
-    <section class="fiches-layout">
-      <aside class="card fiche-sidebar">
+    <section class="course-layout">
+      <aside class="card course-sidebar fiche-sidebar">
         <div class="card-head">
-          <h3>Choix rapide</h3>
-          <span class="badge badge-accent">${ficheSummaries.length} matières</span>
+          <h3>Chapitres</h3>
+          <span class="badge badge-accent">${activeSubject.chapters.length} fiches</span>
         </div>
-        <div class="fiche-select-list">
-          ${ficheButtons}
+        <p class="muted">Choisis un chapitre. La fiche associée reprend le cours en version condensée et directement révisable.</p>
+        <div class="course-chapter-list">
+          ${chapterButtons}
         </div>
       </aside>
 
-      <article class="card fiche-detail">
+      <article class="card course-content printable-card" data-print-id="${activeChapter?.id ?? 'fiche'}">
         <div class="card-head">
           <div>
-            <h3>${activeFiche.label}</h3>
-            <p class="muted">Version ultra-condensée pour réviser vite, avec l’essentiel à connaître.</p>
+            <h3>${activeChapter?.title ?? 'Fiche'}</h3>
+            <p class="muted">${activeSubject.label} - Fiche de révision chapitre par chapitre</p>
           </div>
-          <span class="badge badge-accent">Essentiel</span>
+          <div class="card-head-actions">
+            <span class="badge badge-accent">1 fiche = 1 cours</span>
+            <button type="button" class="button button-secondary button-small" data-print-fiche="${activeChapter?.id ?? ''}">Imprimer</button>
+          </div>
         </div>
-        <div class="stack">
-          <p class="fiche-summary">${activeFiche.summary}</p>
-          <div>
-            <strong>À retenir absolument</strong>
-            <ul class="bullet-list fiche-bullets">
-              ${activeFiche.essentials.map((item) => `<li>${item}</li>`).join('')}
-            </ul>
-          </div>
-          <div class="grid fiche-grid">
-            <section class="mini-week fiche-box">
-              <strong>Définitions clés</strong>
-              <ul class="bullet-list">
-                ${activeFiche.definitions.map((item) => `<li>${item}</li>`).join('')}
-              </ul>
-            </section>
-            <section class="mini-week fiche-box">
-              <strong>Formules à connaître</strong>
-              <ul class="bullet-list">
-                ${activeFiche.formulas.map((item) => `<li>${item}</li>`).join('')}
-              </ul>
-            </section>
-          </div>
-          <div>
-            <strong>Méthode type</strong>
-            <ol class="ordered-list">
-              ${activeFiche.method.map((item) => `<li>${item}</li>`).join('')}
-            </ol>
-          </div>
-          <section class="mini-week fiche-box fiche-focus">
-            <strong>Ce qu’on attend au bac</strong>
-            <p>${activeFiche.bacFocus}</p>
-          </section>
-          <div class="grid fiche-grid">
-            <section class="mini-week fiche-box">
-              <strong>Exemple simple</strong>
-              <p>${activeFiche.example}</p>
-            </section>
-            <section class="mini-week fiche-box">
-              <strong>Erreurs fréquentes</strong>
-              <ul class="bullet-list">
-                ${activeFiche.mistakes.map((item) => `<li>${item}</li>`).join('')}
-              </ul>
-            </section>
-          </div>
-          <div>
-            <strong>Mots-clés</strong>
-            <div class="eyebrow">
-              ${activeFiche.keywords.map((keyword) => badge(keyword, 'neutral')).join('')}
+
+        <div class="course-markdown">
+          <p class="fiche-summary">Cette fiche garde seulement l’essentiel du chapitre: les idées clés, les définitions, les formules et la méthode pour réussir les exercices.</p>
+          <div class="card fiche-overview">
+            <div class="card-head">
+              <strong>Résumé rapide</strong>
+              <span class="badge badge-neutral">À relire avant l’exercice</span>
+            </div>
+            <div class="course-markdown">
+              ${intro || '<p class="muted">Le cours associé ne contient pas d’introduction exploitable.</p>'}
             </div>
           </div>
-          <div class="fiche-actions">
-            <button
-              type="button"
-              class="button button-secondary"
-              data-course-subject="${activeFiche.courseSubject}"
-              data-course-chapter="${activeFiche.courseChapter}"
-            >
-              Ouvrir le cours complet${activeChapter ? `: ${activeChapter.title}` : ''}
-            </button>
-            <span class="muted">La fiche ne garde que l’essentiel. Le cours donne les explications complètes.</span>
-          </div>
+          ${ficheBlocksHtml}
         </div>
       </article>
     </section>
@@ -1586,7 +1656,14 @@ app.addEventListener('click', (event) => {
 
   const ficheButton = target.closest('[data-fiche-subject]');
   if (ficheButton instanceof HTMLElement) {
-    setFicheSubject(ficheButton.dataset.ficheSubject ?? ficheSummaries[0]?.subject ?? 'mathematiques');
+    setFicheSubject(ficheButton.dataset.ficheSubject ?? courseCatalog[0]?.id ?? 'mathematiques');
+    void render();
+    return;
+  }
+
+  const ficheChapterButton = target.closest('[data-fiche-chapter]');
+  if (ficheChapterButton instanceof HTMLElement) {
+    setFicheChapter(ficheChapterButton.dataset.ficheChapter ?? state.ficheChapter);
     void render();
     return;
   }

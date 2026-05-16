@@ -2,9 +2,9 @@
 
 ## Rôle
 
-Les fiches servent de résumé ultra-condensé pour réviser vite.
+Les fiches servent de support de révision par chapitre.
 
-Elles ne remplacent pas les cours complets. Elles doivent permettre à l'élève de retrouver immédiatement:
+Il y a une fiche par cours, afin que l'élève puisse retrouver immédiatement:
 
 - les idées essentielles;
 - les définitions à connaître;
@@ -14,7 +14,7 @@ Elles ne remplacent pas les cours complets. Elles doivent permettre à l'élève
 
 ## Objectif
 
-Créer des fiches de révision claires, courtes et utiles, exploitables en quelques minutes avant un exercice, un test ou une révision rapide.
+Créer des fiches de révision claires, assez complètes pour apprendre un chapitre, mais plus rapides à relire qu'un cours intégral.
 
 ## Différence avec les cours
 
@@ -28,11 +28,11 @@ Créer des fiches de révision claires, courtes et utiles, exploitables en quelq
 
 ### Fiches
 
-- version très courte;
-- uniquement l'essentiel;
-- lecture rapide;
-- format de mémorisation;
-- pas de développement long.
+- version par chapitre;
+- plus concise que le cours;
+- suffisamment développée pour réviser;
+- organisée pour mémoriser rapidement;
+- pas de doublon inutile avec le cours.
 
 ## Matières concernées
 
@@ -52,6 +52,7 @@ Créer des fiches de révision claires, courtes et utiles, exploitables en quelq
 - Exemple très simple
 - Erreurs fréquentes
 - Mots-clés
+- Sources utiles si nécessaire
 
 ## Règles de rédaction
 
@@ -62,10 +63,13 @@ Créer des fiches de révision claires, courtes et utiles, exploitables en quelq
 - Garder un ton sérieux et scolaire.
 - Ne pas refaire le cours complet.
 - Ne pas mettre trop d'exemples.
+- Ne pas ajouter de quiz dans la fiche.
+- Ne pas transformer la fiche en mini-cours.
 
 ## Critères de qualité
 
-- Une fiche doit pouvoir être lue en moins de 5 minutes.
+- Une fiche doit être assez courte pour être relue rapidement.
+- Une fiche doit rester exploitable pour apprendre un chapitre.
 - Une fiche doit aider à retenir le nécessaire avant un exercice.
 - Une fiche doit être directement utile pour le bac STI2D.
 - Une fiche doit être cohérente avec le cours associé.

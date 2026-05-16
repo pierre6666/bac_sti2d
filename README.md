@@ -7,7 +7,7 @@ Site web statique conçu pour un élève de Terminale STI2D spécialité SIN.
 - un planning de révision jusqu'au 15 juin 2026 ;
 - un planning Grand Oral du 16 au 30 juin 2026 ;
 - des fiches de révision en mathématiques, physique-chimie et STI2D / SIN ;
-- des fiches imprimables par matière et par fiche ;
+- des fiches de révision chapitre par chapitre, imprimables ;
 - des sujets type bac corrigés en maths, physique-chimie et STI2D;
 - une page de fiches ultra-prioritaires pour les révisions express;
 - une checklist quotidienne du matin en 30 minutes;
@@ -65,6 +65,6 @@ Le conteneur Docker sert le build statique avec Nginx.
 
 ## Impression des fiches
 
-- Ouvre la page `Maths`, `Physique-chimie` ou `STI2D / SIN`.
+- Ouvre la page `Fiches`.
+- Choisis une matière puis un chapitre.
 - Clique sur `Imprimer` sur une fiche précise pour ouvrir une version dédiée à l'impression.
-- Clique sur `Imprimer toutes les fiches` pour imprimer la page de matière complète.
