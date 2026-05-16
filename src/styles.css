@@ -41,6 +41,280 @@ a {
   text-decoration: none;
 }
 
+.link-plain {
+  color: var(--accent);
+  word-break: break-word;
+}
+
+.link-plain:hover {
+  text-decoration: underline;
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 9px 14px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.filter-chip span {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: rgba(31, 43, 44, 0.08);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.filter-chip.active {
+  border-color: rgba(31, 111, 120, 0.32);
+  background: rgba(31, 111, 120, 0.1);
+  color: var(--text);
+}
+
+.filter-chip.active span {
+  background: rgba(31, 111, 120, 0.18);
+  color: var(--accent);
+}
+
+.course-layout {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 18px;
+}
+
+.course-sidebar {
+  align-self: start;
+}
+
+.course-chapter-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.course-chapter-btn {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.course-chapter-btn.active {
+  border-color: rgba(31, 111, 120, 0.28);
+  background: rgba(31, 111, 120, 0.1);
+}
+
+.course-markdown {
+  display: grid;
+  gap: 16px;
+  line-height: 1.7;
+}
+
+.course-markdown h2,
+.course-markdown h3,
+.course-markdown h4,
+.course-markdown p,
+.course-markdown ul,
+.course-markdown ol,
+.course-markdown blockquote {
+  margin: 0;
+}
+
+.course-markdown h2 {
+  margin-top: 4px;
+  font-size: 1.5rem;
+}
+
+.course-markdown h3 {
+  margin-top: 8px;
+  font-size: 1.15rem;
+}
+
+.course-markdown ul,
+.course-markdown ol {
+  padding-left: 20px;
+}
+
+.course-markdown li + li {
+  margin-top: 6px;
+}
+
+.course-markdown blockquote {
+  padding: 12px 14px;
+  border-left: 4px solid rgba(31, 111, 120, 0.28);
+  background: rgba(31, 111, 120, 0.06);
+  border-radius: 12px;
+}
+
+.course-markdown code {
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: rgba(31, 43, 44, 0.08);
+}
+
+.course-markdown .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 8px 0;
+}
+
+.course-markdown .katex {
+  font-size: 1.02em;
+}
+
+.fiches-layout {
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.fiche-sidebar {
+  position: sticky;
+  top: 92px;
+}
+
+.fiche-select-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.fiche-select {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.75);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.fiche-select:hover {
+  transform: translateY(-1px);
+  border-color: rgba(31, 111, 120, 0.22);
+}
+
+.fiche-select.active {
+  border-color: rgba(31, 111, 120, 0.3);
+  background: rgba(31, 111, 120, 0.08);
+}
+
+.fiche-select-top {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.fiche-select p {
+  margin: 0 0 10px;
+  color: var(--muted);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: calc(1.5em * 3);
+}
+
+.fiche-detail {
+  display: grid;
+  gap: 18px;
+}
+
+.fiche-summary {
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(31, 111, 120, 0.08), rgba(156, 106, 45, 0.08));
+  font-size: 1.04rem;
+}
+
+.fiche-essentials {
+  display: grid;
+  gap: 10px;
+}
+
+.fiche-bullets {
+  margin-top: 10px;
+}
+
+.fiche-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.fiche-box {
+  padding: 14px 16px;
+}
+
+.fiche-focus p {
+  margin: 8px 0 0;
+}
+
+.fiche-essential {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.fiche-essential-index {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: rgba(31, 111, 120, 0.12);
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.fiche-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.course-link {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.course-link span {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
 button,
 input,
 select,
@@ -382,11 +656,15 @@ textarea {
 }
 
 .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 0;
   border-radius: 999px;
   padding: 12px 18px;
   font-weight: 700;
   cursor: pointer;
+  text-decoration: none;
   color: #fff;
   background: linear-gradient(135deg, var(--accent), #165e66);
   box-shadow: 0 12px 28px rgba(31, 111, 120, 0.2);
@@ -436,6 +714,11 @@ textarea {
   gap: 4px;
   padding: 12px 14px;
   background: #fff;
+}
+
+.task-card,
+.mini-week {
+  padding: 14px 16px;
 }
 
 .page-head {
@@ -495,11 +778,17 @@ textarea {
 
 @media (max-width: 980px) {
   .hero,
-  .two-up {
+  .two-up,
+  .course-layout,
+  .fiches-layout {
     grid-template-columns: 1fr;
   }
 
   .site-header {
+    position: static;
+  }
+
+  .fiche-sidebar {
     position: static;
   }
 }
@@ -524,6 +813,29 @@ textarea {
 
   .hero h2 {
     font-size: 2rem;
+  }
+
+  .fiche-select-top {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .fiche-essential {
+    grid-template-columns: 1fr;
+  }
+
+  .fiche-essential-index {
+    width: 32px;
+    height: 32px;
+  }
+
+  .fiche-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fiche-select p {
+    min-height: 0;
+    -webkit-line-clamp: 4;
   }
 }
 
